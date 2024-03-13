@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=>, initial-scale=1.0">
+    <title>Doctor Visit</title>
+    <style>
+        lable{display: inline-block; width: 80px;}
+        input, select{width: 120px;}
+</style>
+</head>
+<body>
+
+    <fieldset style="background-color:beige ; color: darkgreen; width: 320px;">
+        <legend style="color:rgb(146, 3, 146); "> <strong>Customer Infffo:</strong> </legend> 
+        <br><br>
+
+    <label>Patient Number: </label> <input id ="pNumber" type "text"> <br><br>
+    <label>Name </label> <input id ="pName" type "text"> <br><br>    
+    <label>PrimaryDoctor </label> <input id ="doctor" type "text"> <br><br>   <!--id ="primaryDoctor"  -->
+    <label>Purpose of Visit </label> <input id ="vist" type "text"> <br><br> 
+    <label for="visitDate">Start date:</label> 
+    <input type="date"   id="visitDate"><br><br>
+    <label>InsuranceStatus </label> 
+        <select id="insurance"> 
+            <option value = "Yes">Yes</option>
+            <option value = "No">No</option>
+        </select> 
+        <br>
+        <br>
+        <span>
+            <textarea id="notes" name="Comment" placeholder="Clinical notes about   ..." style="height:120px; width: 300px "></textarea>
+        </span>
+
+<hr> 
+<!-- <button id="Insbtn">Insert</button>  > -->
+<button id="addButton">Insert</button>
+<button id="Selbtn">View</button>
+<button id="Updbtn">Update</button>
+<button id="Delbtn">Delete</button>
+<! add connectivity info from Firebase>
+</fieldset>
+<script type="module">
+//problem: appointment book such as doctor office visits 
+
+//Click on cloud firesotere: create database Next -> enable ... start in test mode ... Enable 
+// add button event 
+//click on build.. Firestore database button to see the data// date picker control: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
+//Time picker 
+
+     // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDMf-8wLZF0NRmnPIdXYahvYk88reBsY0k",
+    authDomain: "datatransfertest-f7dcf.firebaseapp.com",
+    projectId: "datatransfertest-f7dcf",
+    storageBucket: "datatransfertest-f7dcf.appspot.com",
+    messagingSenderId: "601080377136",
+    appId: "1:601080377136:web:a59af769675eb4411822f5"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+
+    import{   addDoc, updateDoc, deleteDoc, getDoc,getFirestore, doc, setDoc, collection, deleteField}
+    from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js";
+        const db = getFirestore(); 
+
+
+// references 
+    const patient = document.getElementById("pName"); //use const or let 
+    const patientNo = document.getElementById("pNumber");  
+    const  primaryDoctor = document.getElementById("doctor");
+    const  visitPurpose = document.getElementById("vist");
+    const  isInsured = document.getElementById("insurance");
+    const  dateOfVisit=document.getElementById("visitDate");
+    const  clinicalNotes=document.getElementById("notes");
+    const  insBtn = document.getElementById("addButton")
+    const selBtn = document.getElementById("Selbtn")
+    const updbtn = document.getElementById("Updbtn") 
+    const  delBtn = document.getElementById("Delbtn")
+    //you can include code for the other fields 
+   
+
+    //adding document 
+async function AddpatientwithID() { 
+        ///var ref = collection(db, "PatientVisit")
+        var ref = doc(db, "PatientVisit",patientNo.value);// to save the document with the PatientNumber 
+        // the role number would be uniqu. 
+        const docRef = await setDoc(
+            ref, {
+                PatientName:patient.value, 
+                PatientNumber: patientNo.value, 
+                PrimaryDoctor: primaryDoctor.value, 
+                PurposeOfVisit: visitPurpose.value,
+                InsuranceStatus:isInsured.value,
+                PatientVistDate: dateOfVisit.value, 
+                doctorNotes:clinicalNotes.value
+
+            }
+        )
+        .then(()=> {
+                alert("Data was add to firebase"); 
+            })
+            .catch((error) => { 
+                alert("Add operation failed: "+ error); 
+            }); 
+
+    }
+//************************************** Retrieve  
+//When you read data from a db, you get a snaphsot  (the received data it is part of the db but not the entire db)
+async function GetPatient() { 
+        var ref = doc(db, "PatientVisit",patientNo.value);// to save the document with the PatientNumber
+        const docSnap = await getDoc(ref); 
+        if (docSnap.exists()){
+            patient.value= docSnap.data().PatientName;
+            primaryDoctor.value = docSnap.data().PrimaryDoctor;
+            visitPurpose.value =  docSnap.data().PurposeOfVisit
+            clinicalNotes.value = docSnap.data().doctorNotes
+            dateOfVisit.value = docSnap.data().PatientVistDate
+            isInsured.value = docSnap.data().InsuranceStatus;  
+        }
+            else{ 
+                alert("Data was not found "); 
+            }
+
+    }
+
+//************************Update 
+async function UpdatePatient() { 
+        var ref = doc(db, "PatientVisit",patientNo.value);// 
+       await updateDoc(
+            ref,{
+                PatientName:patient.value, 
+                PatientNumber: patientNo.value, 
+                PrimaryDoctor: primaryDoctor.value, 
+                PurposeOfVisit: visitPurpose.value,
+                doctorNotes:clinicalNotes.value,
+                PatientVistDate: dateOfVisit.value, 
+                InsuranceStatus:isInsured.value  
+
+            }
+        
+    )
+    .then(()=> {
+                alert("Data was updated in firebase"); 
+            })
+            .catch((error) => { 
+                alert("Add operation failed: "+ error); 
+            }); 
+
+    }
+
+
+//******** Delete 
+
+async function DeletePatient() { 
+        var ref = doc(db, "PatientVisit",patientNo.value);// 
+        const docSnap = await getDoc(ref); 
+        
+       if (!docSnap.exists()){
+                alert("Data was not found  in firebase"); 
+                return; 
+            }
+    await deleteDoc(ref)
+    .then(()=> {
+                alert("Data was deleted from firebase"); 
+            })
+            .catch((error) => { 
+                alert("The delete operation failed: "+ error); 
+            })
+
+
+    
+            .catch((error) => { 
+                alert("Add operation failed: "+ error); 
+            }); 
+
+    }
+
+//***********************
+////insBtn.addEventListener("click",AddPatient); 
+insBtn.addEventListener("click",AddpatientwithID); 
+selBtn.addEventListener("click",GetPatient); 
+updbtn.addEventListener("click",UpdatePatient); // when running the code, this operation it two stepss: first GetPatient then UpdatePatient
+delBtn.addEventListener("click",DeletePatient); 
+    </script> 
+
+</body>
+</html>
